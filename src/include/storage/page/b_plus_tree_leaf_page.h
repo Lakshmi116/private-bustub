@@ -1,7 +1,7 @@
 //===----------------------------------------------------------------------===//
 //
 //                         CMU-DB Project (15-445/645)
-//                         ***DO NO SHARE PUBLICLY***
+//                         **DO NO SHARE PUBLICLY**
 //
 // Identification: src/include/page/b_plus_tree_leaf_page.h
 //
@@ -44,7 +44,7 @@ class BPlusTreeLeafPage : public BPlusTreePage {
  public:
   // After creating a new leaf page from buffer pool, must call initialize
   // method to set default values
-  void Init(page_id_t page_id, page_id_t parent_id = INVALID_PAGE_ID, int max_size = LEAF_PAGE_SIZE);
+  void Init(page_id_t page_id, page_id_t parent_id = INVALID_PAGE_ID);
   // helper methods
   page_id_t GetNextPageId() const;
   void SetNextPageId(page_id_t next_page_id);
@@ -54,19 +54,23 @@ class BPlusTreeLeafPage : public BPlusTreePage {
 
   // insert and delete methods
   int Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator);
-  bool Lookup(const KeyType &key, ValueType *value, const KeyComparator &comparator) const;
+  bool Lookup(const KeyType &key,ValueType &value, const KeyComparator &comparator) const;
   int RemoveAndDeleteRecord(const KeyType &key, const KeyComparator &comparator);
 
   // Split and Merge utility methods
-  void MoveHalfTo(BPlusTreeLeafPage *recipient);
-  void MoveAllTo(BPlusTreeLeafPage *recipient);
-  void MoveFirstToEndOf(BPlusTreeLeafPage *recipient);
-  void MoveLastToFrontOf(BPlusTreeLeafPage *recipient);
+  void MoveHalfTo(BPlusTreeLeafPage *recipient,BufferPoolManager *buffer_pool_manager /*unused*/);
+  void MoveAllTo(BPlusTreeLeafPage *recipient,int, BufferPoolManager *buffer_pool_manager);
+  void MoveFirstToEndOf(BPlusTreeLeafPage *recipient, BufferPoolManager *buffer_pool_manager);
+  void MoveLastToFrontOf(BPlusTreeLeafPage *recipient, int parentIndex, BufferPoolManager *buffer_pool_manager);
+  
 
  private:
   void CopyNFrom(MappingType *items, int size);
+  void CopyHalfFrom(MappingType *items, int size);
+  void CopyAllFrom(MappingType *items, int size);
   void CopyLastFrom(const MappingType &item);
-  void CopyFirstFrom(const MappingType &item);
+  void CopyFirstFrom(const MappingType &item, int parentIndex, BufferPoolManager *buffer_pool_manager);
+
   page_id_t next_page_id_;
   MappingType array[0];
 };

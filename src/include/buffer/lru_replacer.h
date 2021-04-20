@@ -15,6 +15,7 @@
 #include <list>
 #include <mutex>  // NOLINT
 #include <vector>
+#include <unordered_map>
 
 #include "buffer/replacer.h"
 #include "common/config.h"
@@ -47,6 +48,14 @@ class LRUReplacer : public Replacer {
 
  private:
   // TODO(student): implement me!
+  using ListIterator = typename std::list<frame_id_t>::const_iterator;
+  using CacheMap = std::unordered_map<frame_id_t,ListIterator>;
+ 
+  size_t num_pages;
+  std::mutex lru_lock;
+  std::list<frame_id_t> lru_bucket_list;
+  CacheMap lru_map;
+  
 };
 
 }  // namespace bustub
