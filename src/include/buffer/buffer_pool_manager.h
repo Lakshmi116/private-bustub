@@ -17,6 +17,7 @@
 #include <unordered_map>
 
 #include "buffer/lru_replacer.h"
+#include "storage/disk/disk_manager.h"
 #include "recovery/log_manager.h"
 #include "storage/disk/disk_manager.h"
 #include "storage/page/page.h"
@@ -97,7 +98,7 @@ class BufferPoolManager {
   /** @return size of the buffer pool */
   size_t GetPoolSize() { return pool_size_; }
 
- protected:
+ //protected:
   /**
    * Grading function. Do not modify!
    * Invokes the callback function if it is not null.
@@ -151,7 +152,7 @@ class BufferPoolManager {
    * Flushes all the pages in the buffer pool to disk.
    */
   void FlushAllPagesImpl();
-
+private:
   /** Number of pages in the buffer pool. */
   size_t pool_size_;
   /** Array of buffer pool pages. */

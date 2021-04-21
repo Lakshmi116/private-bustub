@@ -23,6 +23,8 @@ namespace bustub {
 
 #define BPLUSTREE_TYPE BPlusTree<KeyType, ValueType, KeyComparator>
 
+enum class Operation { READONLY = 0, INSERT, DELETE };
+
 /**
  * Main class providing the API for the Interactive B+ Tree.
  *
@@ -39,8 +41,10 @@ class BPlusTree {
   using LeafPage = BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>;
 
  public:
-  explicit BPlusTree(std::string name, BufferPoolManager *buffer_pool_manager, const KeyComparator &comparator,
-                     int leaf_max_size = LEAF_PAGE_SIZE, int internal_max_size = INTERNAL_PAGE_SIZE);
+  
+  explicit BPlusTree(std::string name, BufferPoolManager *buffer_pool_manager,
+                     const KeyComparator &comparator,
+                      page_id_t root_page_id = INVALID_PAGE_ID);
 
   // Returns true if this B+ tree has no keys and values.
   bool IsEmpty() const;
@@ -52,12 +56,20 @@ class BPlusTree {
   void Remove(const KeyType &key, Transaction *transaction = nullptr);
 
   // return the value associated with a given key
-  bool GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *transaction = nullptr);
+  bool GetValue(const KeyType &key, std::vector<ValueType> &result, Transaction *transaction = nullptr);
 
+
+  int leaf_max_size_;
+  int internal_max_size_;
   // index iterator
   INDEXITERATOR_TYPE begin();
   INDEXITERATOR_TYPE Begin(const KeyType &key);
   INDEXITERATOR_TYPE end();
+
+  // Print this B+ tree to stdout using a simple command-line
+  std::string ToString(bool verbose = false);
+
+
 
   void Print(BufferPoolManager *bpm) {
     ToString(reinterpret_cast<BPlusTreePage *>(bpm->FetchPage(root_page_id_)->GetData()), bpm);
@@ -77,9 +89,23 @@ class BPlusTree {
   // read data from file and remove one by one
   void RemoveFromFile(const std::string &file_name, Transaction *transaction = nullptr);
   // expose for test purpose
-  Page *FindLeafPage(const KeyType &key, bool leftMost = false);
+  BPlusTreeLeafPage<KeyType, ValueType, KeyComparator> *FindLeafPage(const KeyType &key, bool leftMost = false,
+              Operation op = Operation::READONLY,
+               Transaction *transaction = nullptr);
 
  private:
+ /*
+  class Checker {
+  public:
+    explicit Checker(BufferPoolManager *b) : buffer(b) {}
+    ~Checker() {
+      assert(buffer->Check());
+    }
+  private:
+    BufferPoolManager *buffer;
+  };*/
+
+
   void StartNewTree(const KeyType &key, const ValueType &value);
 
   bool InsertIntoLeaf(const KeyType &key, const ValueType &value, Transaction *transaction = nullptr);
@@ -94,15 +120,29 @@ class BPlusTree {
   bool CoalesceOrRedistribute(N *node, Transaction *transaction = nullptr);
 
   template <typename N>
+  void Coalesce(N *neighbor_node, N *node, BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator> *parent,
+                int index, Transaction *transaction = nullptr);
+/*
+  template <typename N>
   bool Coalesce(N **neighbor_node, N **node, BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator> **parent,
                 int index, Transaction *transaction = nullptr);
-
+*/
   template <typename N>
   void Redistribute(N *neighbor_node, N *node, int index);
 
   bool AdjustRoot(BPlusTreePage *node);
 
-  void UpdateRootPageId(int insert_record = 0);
+  void UpdateRootPageId(bool insert_record = false);
+
+   // unlock all parents
+  void UnlockUnpinPages(Operation op, Transaction *transaction);
+
+  template <typename N>
+  bool isSafe(N *node, Operation op);
+
+  inline void lockRoot() { mutex_.lock(); }
+  inline void unlockRoot() { mutex_.unlock(); }
+
 
   /* Debug Routines for FREE!! */
   void ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstream &out) const;
@@ -111,11 +151,12 @@ class BPlusTree {
 
   // member variable
   std::string index_name_;
+  std::mutex mutex_;                       // protect `root_page_id_` from concurrent modification
+  static thread_local bool root_is_locked; // root is locked?
   page_id_t root_page_id_;
   BufferPoolManager *buffer_pool_manager_;
   KeyComparator comparator_;
-  int leaf_max_size_;
-  int internal_max_size_;
+  
 };
 
 }  // namespace bustub

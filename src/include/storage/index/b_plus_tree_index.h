@@ -25,13 +25,15 @@ namespace bustub {
 INDEX_TEMPLATE_ARGUMENTS
 class BPlusTreeIndex : public Index {
  public:
-  BPlusTreeIndex(IndexMetadata *metadata, BufferPoolManager *buffer_pool_manager);
+  BPlusTreeIndex(IndexMetadata *metadata, BufferPoolManager *buffer_pool_manager,page_id_t root_page_id = INVALID_PAGE_ID);
 
-  void InsertEntry(const Tuple &key, RID rid, Transaction *transaction) override;
+  ~BPlusTreeIndex() {}
+  
+  void InsertEntry(const Tuple &key, RID rid, Transaction *transaction = nullptr) /*override*/;
 
-  void DeleteEntry(const Tuple &key, RID rid, Transaction *transaction) override;
+  void DeleteEntry(const Tuple &key,Transaction *transaction = nullptr) /*override*/;
 
-  void ScanKey(const Tuple &key, std::vector<RID> *result, Transaction *transaction) override;
+  void ScanKey(const Tuple &key, std::vector<RID> &result, Transaction *transaction = nullptr) /*override*/;
 
   INDEXITERATOR_TYPE GetBeginIterator();
 

@@ -36,8 +36,8 @@ class IndexMetadata {
  public:
   IndexMetadata() = delete;
 
-  IndexMetadata(std::string index_name, std::string table_name, const Schema *tuple_schema,
-                std::vector<uint32_t> key_attrs)
+  IndexMetadata(std::string index_name, std::string table_name,
+                const Schema *tuple_schema, std::vector<uint32_t> key_attrs)
       : name_(std::move(index_name)), table_name_(std::move(table_name)), key_attrs_(std::move(key_attrs)) {
     key_schema_ = Schema::CopySchema(tuple_schema, key_attrs_);
   }

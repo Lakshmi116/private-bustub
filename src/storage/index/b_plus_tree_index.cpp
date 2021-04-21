@@ -16,10 +16,11 @@ namespace bustub {
  * Constructor
  */
 INDEX_TEMPLATE_ARGUMENTS
-BPLUSTREE_INDEX_TYPE::BPlusTreeIndex(IndexMetadata *metadata, BufferPoolManager *buffer_pool_manager)
+BPLUSTREE_INDEX_TYPE::
+BPlusTreeIndex(IndexMetadata *metadata, BufferPoolManager *buffer_pool_manager,page_id_t root_page_id)
     : Index(metadata),
       comparator_(metadata->GetKeySchema()),
-      container_(metadata->GetName(), buffer_pool_manager, comparator_) {}
+      container_(metadata->GetName(), buffer_pool_manager, comparator_,root_page_id) {}
 
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_INDEX_TYPE::InsertEntry(const Tuple &key, RID rid, Transaction *transaction) {
@@ -31,7 +32,7 @@ void BPLUSTREE_INDEX_TYPE::InsertEntry(const Tuple &key, RID rid, Transaction *t
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-void BPLUSTREE_INDEX_TYPE::DeleteEntry(const Tuple &key, RID rid, Transaction *transaction) {
+void BPLUSTREE_INDEX_TYPE::DeleteEntry(const Tuple &key, Transaction *transaction) {
   // construct delete index key
   KeyType index_key;
   index_key.SetFromKey(key);
@@ -40,7 +41,7 @@ void BPLUSTREE_INDEX_TYPE::DeleteEntry(const Tuple &key, RID rid, Transaction *t
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-void BPLUSTREE_INDEX_TYPE::ScanKey(const Tuple &key, std::vector<RID> *result, Transaction *transaction) {
+void BPLUSTREE_INDEX_TYPE::ScanKey(const Tuple &key, std::vector<RID> &result, Transaction *transaction) {
   // construct scan index key
   KeyType index_key;
   index_key.SetFromKey(key);
@@ -54,8 +55,10 @@ INDEXITERATOR_TYPE BPLUSTREE_INDEX_TYPE::GetBeginIterator() { return container_.
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_INDEX_TYPE::GetBeginIterator(const KeyType &key) { return container_.Begin(key); }
 
+
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE BPLUSTREE_INDEX_TYPE::GetEndIterator() { return container_.end(); }
+
 
 template class BPlusTreeIndex<GenericKey<4>, RID, GenericComparator<4>>;
 template class BPlusTreeIndex<GenericKey<8>, RID, GenericComparator<8>>;

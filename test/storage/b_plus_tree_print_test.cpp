@@ -41,7 +41,7 @@ std::string usageMessage() {
 }
 
 // Remove 'DISABLED_' when you are ready
-TEST(BptTreeTest, DISABLED_UnitTest) {
+TEST(BptTreeTest,DISABLED_UnitTest) {
   int64_t key = 0;
   GenericKey<8> index_key;
   RID rid;
@@ -66,7 +66,9 @@ TEST(BptTreeTest, DISABLED_UnitTest) {
   page_id_t page_id;
   auto header_page = bpm->NewPage(&page_id);
   // create b+ tree
-  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", bpm, comparator, leaf_max_size, internal_max_size);
+  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", bpm, comparator);
+  tree.leaf_max_size_ = leaf_max_size;
+  tree.internal_max_size_ = internal_max_size;
   // create transaction
   Transaction *transaction = new Transaction(0);
   while (!quit) {
